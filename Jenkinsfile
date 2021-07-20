@@ -1,7 +1,6 @@
 pipeline {
   environment {
-    registry_search = "hub.cxview.ai/search_searching_staging"
-    registry_service = "hub.cxview.ai/services_searching_staging"
+    registry = "hub.iview.vn/heatmapservice_goview_staging"
     registryCredential = 'dockerhub'
     dockerImage = ''
   }
@@ -9,41 +8,27 @@ pipeline {
   stages {
     stage('Cloning Git') {
       steps {
-        git 'https://github.com/Duocc-mcq/Tim-hieu-docker.git'
+        git 'https://github.com/Duocc-mcq/Monitor.git'
       }
     }
     stage('Building image') {
       steps{
         script {
           docker.withRegistry( 'https://hub.cxview.ai', registryCredential ) {
-            dockerImage = docker.build registry_search + ":$BUILD_NUMBER"
+            dockerImage = docker.build registry + ":$BUILD_NUMBER"
             dockerImage.push() 
             dockerImage.push('latest') 
           }
         }
       }
-      steps{
-        script {
-          docker.withRegistry( 'https://hub.cxview.ai', registryCredential ) {
-            dockerImage = docker.build registry_service + "$BUILD_NUBER"
-            dockerImage.push()
-            dockerImage.push('latest') 
-          }
-        } 
-      }
     }
-    stage('Deploy Image_search') {
+    stage('Deploy Image') {
       steps{
         script {
-          sh ""
-        }
-      }
-    }
-
-    stage('Deploy Image_service') {
-      steps{
-        script {
-          sh ""
+          sh "docker run -itd --net=host --name people-gateway \
+  		--shm-size=10.05gb \
+  		-v /mnt/sda2/ExternalHardrive/edge-ai/people-counting-heatmap-service:/people-counting-heatmap-service \
+  		hub.cxview.ai/people-gateway:0.1-base"
         }
       }
     }
